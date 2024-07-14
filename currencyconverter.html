@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .converter {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Currency Converter</h1>
+        <div class="converter">
+            <input type="number" id="amount" placeholder="Amount" />
+            <select id="fromCurrency">
+            </select>
+            <select id="toCurrency">
+            </select>
+            <button id="convertBtn">Convert</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const amountInput = document.getElementById('amount');
+            const fromCurrency = document.getElementById('fromCurrency');
+            const toCurrency = document.getElementById('toCurrency');
+            const convertBtn = document.getElementById('convertBtn');
+            const resultDiv = document.getElementById('result');
+
+            // Fetch currency codes and populate the select elements
+            fetch('https://api.exchangerate-api.com/v4/latest/USD')
+                .then(response => response.json())
+                .then(data => {
+                    const currencies = Object.keys(data.rates);
+                    populateSelectElement(fromCurrency, currencies);
+                    populateSelectElement(toCurrency, currencies);
+                });
+
+            // Populate select element with currency options
+            function populateSelectElement(selectElement, currencies) {
+                currencies.forEach(currency => {
+                    const option = document.createElement('option');
+                    option.value = currency;
+                    option.textContent = currency;
+                    selectElement.appendChild(option);
+                });
+            }
+
+            // Convert currency when button is clicked
+            convertBtn.addEventListener('click', () => {
+                const amount = parseFloat(amountInput.value);
+                const from = fromCurrency.value;
+                const to = toCurrency.value;
+
+                if (isNaN(amount)) {
+                    resultDiv.textContent = 'Please enter a valid amount';
+                    return;
+                }
+
+                fetch(`https://api.exchangerate-api.com/v4/latest/${from}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const rate = data.rates[to];
+                        const convertedAmount = (amount * rate).toFixed(2);
+                        resultDiv.textContent = `${amount} ${from} = ${convertedAmount} ${to}`;
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
